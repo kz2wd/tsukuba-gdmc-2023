@@ -1,20 +1,21 @@
 import math
 import random
-from collections import Counter, defaultdict
-from typing import Any, DefaultDict, Iterator, MutableMapping
+from collections import Counter
+from typing import Any, Iterator, MutableMapping
 
 from colorama import Fore
-from gdpc import interface, lookup, toolbox
+from gdpc import interface, lookup
 
 from src import env
 from src.blocks.block import Block
+from src.blocks.collections.block_list import BlockList
+from src.env import EDITOR
 from src.plots.plot import Plot, CityPlot
+from src.simulation.buildings.building import Building, Graveyard, WeddingTotem
+from src.simulation.villager import Villager
 from src.utils import chest, loot_table
 from src.utils.book_maker import BookMaker
 from src.utils.criteria import Criteria
-from src.simulation.villager import Villager
-from src.blocks.collections.block_list import BlockList
-from src.simulation.buildings.building import Building, Graveyard, WeddingTotem
 from src.utils.loot_table import MinecraftItem
 
 
@@ -272,7 +273,6 @@ class Settlement(MutableMapping):
         for building in random.sample(self.chronology, math.ceil(k)):
             building.grow_old(random.randint(65, 80))
 
-
     def spawn_villagers_and_guards(self):
         """"""
         x, y, z = self.chronology[0].entrance
@@ -333,7 +333,8 @@ class Settlement(MutableMapping):
         coord = self.plot.random_coord_3d()
         chest_data = chest.get_filled_chest_data([], loot_table.LOOT_TABLES['TREASURE'], fill_amount=20)
         chest_string = f'minecraft:chest'
-        interface.placeBlock(*coord, chest_string)
+        EDITOR.placeBlock(*coord, Block(chest_string))
+        # interface.placeBlock(*coord, chest_string)
         print(f'Treasure Chest at {coord}')
         interface.sendBlocks()
         interface.runCommand(f'data merge block {coord.x} {coord.y} {coord.z} {chest_data}')
@@ -355,12 +356,12 @@ class Settlement(MutableMapping):
                                   author='Settlement Construction Community (SCC)').write_book()
             lectern_list = building.blocks[building.structures[0]].filter('lectern')
 
-            interface.sendBlocks()
+            EDITOR.flushBuffer()
 
             if len(lectern_list):
                 lectern: Block = lectern_list[0]
                 interface.placeBlock(*lectern.coordinates, 'air')
-                toolbox.placeLectern(*lectern.coordinates, book_data, facing=lectern.properties['facing'])
+                # toolbox.placeLectern(*lectern.coordinates, book_data, facing=lectern.properties['facing'])
 
         # make a book
         text = '\n\n'.join(self.city_history)
@@ -368,10 +369,9 @@ class Settlement(MutableMapping):
         lectern_list = self._buildings['Town Hall'][0].blocks[self._buildings['Town Hall'][0].structures[0]].filter('lectern')
         if len(lectern_list):
             lectern: Block = lectern_list[0]
-            toolbox.placeLectern(*lectern.coordinates, book_data, facing=lectern.properties['facing'])
+            # toolbox.placeLectern(*lectern.coordinates, book_data, facing=lectern.properties['facing'])
 
-        interface.setBuffering(True)
-        interface.sendBlocks()
+        EDITOR.flushBuffer()
 
     def add_flowers(self):
         coords = set([coord.as_2D() for coord in self.plot.surface()]) - self.plot.occupied_coordinates
@@ -380,9 +380,9 @@ class Settlement(MutableMapping):
         chosen_coords = random.sample(coords, k=math.ceil(0.30 * len(coords)))
 
         for coord, flower in zip(chosen_coords,
-                                 random.choices(lookup.SHORTFLOWERS + ('minecraft:lantern',), k=len(chosen_coords))):
+                                 random.choices(lookup.SMALL_FLOWER_TYPES + ('minecraft:lantern',), k=len(chosen_coords))):
             if (real_block := surface.find(coord)).is_one_of('grass_block'):
-                interface.placeBlock(*real_block.coordinates.shift(y=1), flower)
+                EDITOR.placeBlock(*real_block.coordinates.shift(y=1), flower)
 
 
     def __getitem__(self, key: str) -> Building | list[Building]:

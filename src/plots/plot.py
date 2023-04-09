@@ -17,6 +17,7 @@ from numpy import ndarray
 from src import env
 from src.blocks.block import Block
 from src.blocks.collections.block_list import BlockList
+from src.env import EDITOR
 from src.simulation.buildings.utils.building_type import BuildingType
 from src.utils import math_utils
 from src.utils.coordinates import Coordinates
@@ -33,9 +34,10 @@ class Plot:
         self.start = Coordinates(x, y, z)
         self.end = Coordinates(x + size.x, 255, z + size.z)
         self.size = size
-        self.offset = self.start - env.BUILD_AREA.start, self.end - env.BUILD_AREA.start
+        self.offset = self.start - Coordinates(*env.BUILD_AREA.begin), self.end - Coordinates(*env.BUILD_AREA.begin)
         self.surface_blocks: dict[Criteria, BlockList] = {}
         self.water_mode = 'water' in self.get_blocks(Criteria.MOTION_BLOCKING_NO_TREES).most_common
+
 
     def remove_lava(self):
         checked = set()
@@ -51,7 +53,7 @@ class Plot:
                 if neighbor and 'lava' in neighbor.name and neighbor not in checked and coord_neighbor in self:
                     lava_blocks.append(neighbor)
 
-        INTF.sendBlocks()
+        EDITOR.flushBuffer()
 
     @ staticmethod
     def from_coordinates(start: Coordinates, end: Coordinates) -> Plot:
@@ -74,8 +76,8 @@ class Plot:
     def get_block_at(x: int, y: int, z: int) -> Block:
         """Return the block found at the given x, y, z coordinates in the env.WORLD"""
         try:
-            name = env.WORLD.getBlockAt(x, y, z)
-            return Block.deserialize(name, Coordinates(x, y, z))
+            block = env.WORLD.getBlock((x, y, z))
+            return Block.deserialize(block.id, Coordinates(x, y, z))
         except IndexError:
             return Block('out of bound', None)
 
@@ -117,14 +119,14 @@ class Plot:
 
         for x, rest in enumerate(heightmap):
             for z, h in enumerate(rest):
-                base_coord = Coordinates(env.BUILD_AREA.start.x + x, h - 1, env.BUILD_AREA.start.z + z)
+                base_coord = Coordinates(env.BUILD_AREA.begin.x + x, h - 1, env.BUILD_AREA.begin.z + z)
 
                 ground_coord = None
                 # To get to the last block until the ground
-                for ground_coord in self.__yield_until_ground(base_coord):
-                    pass
+                # for ground_coord in self.__yield_until_ground(base_coord):
+                #     pass
                 if ground_coord:
-                    heightmap[x, z] = ground_coord.y
+                    heightmap[x, z] = base_coord.y
 
         return heightmap
 
@@ -148,16 +150,16 @@ class Plot:
                 INTF.placeBlock(*coord, 'minecraft:air')
                 amount += 1
 
-        INTF.sendBlocks()
+        EDITOR.flushBuffer()
         if env.DEBUG:
             print(f'=> Deleted {amount} blocs\n')
         # self.update()
 
+    # THIS FUNCTION IS BROCKEN !!!
     def __yield_until_ground(self, coordinates: Coordinates):
         """Yield the coordinates """
         current_coord: Coordinates = coordinates
-
-        while self.get_block_at(*current_coord).is_one_of(('air', 'leaves', 'log', 'vine', 'bamboo')):
+        while self.get_block_at(*current_coord).is_one_of(('air', 'leaves', 'log', 'vine', 'bamboo')) and current_coord.y > -64:
             yield current_coord
             current_coord = current_coord.shift(0, -1, 0)
 
@@ -166,7 +168,7 @@ class Plot:
         if not self.water_mode:
             blocks = ('stone_bricks', 'diorite', 'cobblestone')
             weights = (75, 15, 10)
-
+            return
             for coord in self.__iterate_over_air(self.start.y):
                 block = random.choices(blocks, weights)
                 INTF.placeBlock(*coord, block)
@@ -204,7 +206,7 @@ class Plot:
                 if c in build_area:
                     INTF.placeBlock(*c, "oak_log[axis=y]")
 
-        INTF.sendBlocks()
+        EDITOR.flushBuffer()
 
     def __iterate_over_air(self, max_y: int) -> Coordinates:
         """"""

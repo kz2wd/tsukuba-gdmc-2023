@@ -8,11 +8,13 @@ import random
 from dataclasses import replace
 from typing import Any, Callable
 
+import gdpc
 from colorama import Fore
 from gdpc import lookup as LOOKUP
 from gdpc import interface as INTERFACE
 
 from src.blocks.utils.block_properties import BlockProperties
+from src.env import EDITOR
 from src.simulation.buildings.utils.building_type import BuildingType
 from src.simulation.quests import quests
 from src.simulation.villager import Villager
@@ -228,7 +230,7 @@ class Blueprint(ABC):
 
         # Actually placing the blocks
         for block in blocks:
-            INTERFACE.placeBlock(*block.coordinates, block.full_name)
+            block.place()
 
     def _place_sign(self):
         """Place a sign indicating informations about the building"""

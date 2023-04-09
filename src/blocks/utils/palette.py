@@ -122,7 +122,7 @@ class ColorPalette(Palette):
 
     def __init__(self, palette: dict[str, Any]) -> None:
         """Create a new color palette"""
-        self.color = random.choice(LOOKUP.COLORS)
+        self.color = random.choice(list(LOOKUP.DYE_COLORS.keys()))
 
     def get_block(self, old_block: Block) -> Block:
         """Return a new block corresponding to the given [old block] once changed according

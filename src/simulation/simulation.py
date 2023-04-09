@@ -1,19 +1,13 @@
-import math
-import random
 from typing import Literal
+
 from colorama import Fore
-from gdpc import interface, toolbox, lookup
 
-from src import view, env
-from src.blocks.block import Block
+from src import view
+from src.env import EDITOR
 from src.plots.plot import Plot, CityPlot
-from src.simulation.buildings.utils.building_type import BuildingType
-from src.simulation.event import get_event
-
-from src.simulation.settlement import Settlement
 from src.simulation.decisions import DecisionMaking, choose_building
-from src.utils.book_maker import BookMaker
-from src.utils.criteria import Criteria
+from src.simulation.event import get_event
+from src.simulation.settlement import Settlement
 
 
 class Simulation:
@@ -80,8 +74,7 @@ class Simulation:
         print(
             f'\n{Fore.YELLOW}***{Fore.WHITE} Simulation ended at year {Fore.RED}{self.current_year}/{self.simulation_end}{Fore.WHITE} {Fore.YELLOW}***{Fore.WHITE}')
 
-        interface.sendBlocks()
-        interface.setBuffering(False)
+        EDITOR.flushBuffer()
 
     def run_on(self, settlement: Settlement) -> None:
         """Run the simulation for 1 year on the given [settlement]. The simulation will try to add

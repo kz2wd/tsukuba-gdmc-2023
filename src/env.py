@@ -3,17 +3,16 @@ import time
 from typing import Any, Iterator
 from dataclasses import dataclass
 
-from gdpc import interface
-from gdpc.worldLoader import WorldSlice
+from gdpc import interface, editor, WorldSlice, Rect, Box
 from nbt.nbt import MalformedFileError
 
 from src.utils.coordinates import Coordinates, Size
 
 # The default build are
-BUILD_AREA = None
+BUILD_AREA: Box | None = None
 
 # The world slice of the build area
-WORLD = None
+WORLD: WorldSlice | None = None
 
 # Wether the simulation runs in debug mode or not
 DEBUG = False
@@ -28,6 +27,8 @@ SHOW_TIME = False
 start_time = time.time()
 
 PROFILE_TIME = False
+
+EDITOR = editor.Editor()
 
 
 @dataclass(frozen=True)
@@ -64,8 +65,8 @@ def get_world_slice() -> WorldSlice | None:
     """Set the WORLD attribute"""
     while retry_amount := 20:
         try:
-            return WorldSlice(BUILD_AREA.start.x, BUILD_AREA.start.z,
-                              BUILD_AREA.end.x + 1, BUILD_AREA.end.z + 1)
+            # return WorldSlice(BUILD_AREA.start.x, BUILD_AREA.start.z, BUILD_AREA.end.x + 1, BUILD_AREA.end.z + 1)
+            return WorldSlice(Rect((BUILD_AREA.begin.x, BUILD_AREA.begin.z), (BUILD_AREA.size.x, BUILD_AREA.size.z)))
         except MalformedFileError:
             retry_amount -= 1
             time.sleep(1)
@@ -85,7 +86,7 @@ def summon(entity: str, coordinates: Coordinates, *, name: str = '') -> None:
     """"""
     x, y, z = coordinates
     command = f'summon {entity} {x} {y} {z} {{CustomName:"\\"{name}\\""}}'
-    interface.runCommand(command)
+    EDITOR.runCommand(command)
 
 
 # Mapping of a material and its replacement and keepProperties (tuple)

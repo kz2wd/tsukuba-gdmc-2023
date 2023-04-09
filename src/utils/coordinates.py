@@ -137,6 +137,7 @@ class Coordinates:
             yield current
 
     def place_sign(self, text, replace_block: bool = False, rotation: int = 0):
+        return
         texts = textwrap.wrap(text, width=15) + ["", "", ""]
 
         data = "{" + f'Text1:\'{{"text":"{texts[0]}"}}\','

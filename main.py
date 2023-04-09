@@ -1,4 +1,8 @@
 from __future__ import annotations
+
+from src.env import EDITOR
+from src.utils.coordinates import Coordinates
+
 """Main entry-point to manage CLI options and start a custom simulation.
 Type `python main.py --help` to see the list of available options"""
 
@@ -7,6 +11,7 @@ import time
 import click
 from colorama import Fore
 from gdpc import interface as INTERFACE
+from gdpc import editor
 
 from src import env
 from src.blocks.block import Block
@@ -37,18 +42,19 @@ def prepare_environment(debug: bool, tick_speed: int, no_buffering: bool, tp: bo
     env.SHOW_TIME = show_time
     env.PROFILE_TIME = profile_time
 
-    env.BUILD_AREA = env.get_build_area(auto_build_area)
+    env.BUILD_AREA = EDITOR.getBuildArea()
     env.WORLD = env.get_world_slice()
 
     if auto_build_area:
         env.TP = False
         print(f'{Fore.YELLOW}***{Fore.WHITE} Set build area around the player {Fore.YELLOW}***{Fore.WHITE}')
 
-    INTERFACE.setBuffering(not no_buffering)
-    INTERFACE.placeBlockFlags(doBlockUpdates=True, customFlags='0100011')
-
-    INTERFACE.runCommand(f'gamerule doTileDrops {str(drops).lower()}')
-    INTERFACE.runCommand(f'gamerule randomTickSpeed {tick_speed}')
+    EDITOR.doBlockUpdates = False
+    EDITOR.buffering = not no_buffering
+    # INTERFACE.setBuffering(not no_buffering)
+    # INTERFACE.placeBlockFlags(doBlockUpdates=True, customFlags='0100011')
+    EDITOR.runCommand(f'gamerule doTileDrops {str(drops).lower()}')
+    EDITOR.runCommand(f'gamerule randomTickSpeed {tick_speed}')
 
     if env.PROFILE_TIME:
         import cProfile
@@ -71,7 +77,7 @@ def prepare_environment(debug: bool, tick_speed: int, no_buffering: bool, tp: bo
 
 def start_simulation(years: int) -> None:
     """Launch the simulation"""
-    start, end = env.BUILD_AREA
+    start, end = Coordinates(*env.BUILD_AREA.begin), Coordinates(*env.BUILD_AREA.end)
     build_area = Plot.from_coordinates(start, end)
     build_area.remove_lava()
     env.WORLD = env.get_world_slice()
@@ -80,17 +86,15 @@ def start_simulation(years: int) -> None:
         command = f'tp @a {build_area.start.x} 110 {build_area.start.z}'
         INTERFACE.runCommand(command)
         print(f'/{command}')
-
     find_building_materials(build_area)
 
     # simulation = Simulation(build_area, 'auto')
     simulation = Simulation(build_area, years)
     simulation.start()
 
-    INTERFACE.sendBlocks()
-
-    INTERFACE.runCommand('gamerule randomTickSpeed 3')
-    INTERFACE.runCommand('gamerule doEntityDrops true')
+    EDITOR.flushBuffer()
+    EDITOR.runCommand('gamerule randomTickSpeed 3')
+    EDITOR.runCommand('gamerule doEntityDrops true')
 
 
 def find_building_materials(build_area: Plot):

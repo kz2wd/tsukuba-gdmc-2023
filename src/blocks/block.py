@@ -3,10 +3,12 @@ from __future__ import annotations
 from typing import Dict, List, Tuple
 from dataclasses import dataclass, replace, field
 
-from gdpc import lookup
+import gdpc
+from gdpc import lookup, Block
 from nbt.nbt import TAG_Compound, TAG_List
 
 from src.blocks.utils.block_properties import BlockProperties
+from src.env import EDITOR
 
 from src.utils.direction import Direction
 from src.utils.coordinates import Coordinates
@@ -18,6 +20,11 @@ class Block:
     name: str
     coordinates: Coordinates
     properties: BlockProperties = field(default_factory=BlockProperties)
+
+    def place(self):
+        print(f"PLACING BLOCKS AT {tuple(self.coordinates.__iter__())}")
+        EDITOR.placeBlock(tuple(self.coordinates.__iter__()), gdpc.Block(self.name))
+        EDITOR.flushBuffer()
 
     @staticmethod
     def parse_nbt(block: TAG_Compound, palette: TAG_List) -> Block:
