@@ -22,8 +22,7 @@ class Block:
     properties: BlockProperties = field(default_factory=BlockProperties)
 
     def place(self):
-        print(f"PLACING BLOCKS AT {tuple(self.coordinates.__iter__())}")
-        EDITOR.placeBlock(tuple(self.coordinates.__iter__()), gdpc.Block(self.name))
+        EDITOR.placeBlock(tuple(self.coordinates.__iter__()), gdpc.Block(self.name, self.properties.props()))
         EDITOR.flushBuffer()
 
     @staticmethod

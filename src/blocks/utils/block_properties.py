@@ -25,6 +25,9 @@ class BlockProperties(Mapping):
 
         return BlockProperties(props)
 
+    def props(self):
+        return {str(key) if isinstance(key, Direction) else key: self.__properties[key] for key in self.__properties.keys()}
+
     # [facing=north,axis=y]
     @staticmethod
     def deserialize(data: str) -> BlockProperties:
