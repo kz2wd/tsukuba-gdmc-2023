@@ -162,8 +162,8 @@ class Blueprint(ABC):
                 replacement = Block(name[0], block.coordinates, properties=BlockProperties({
                     'persistent': 'true'} if name[0] == 'oak_leaves' else {}))
 
-            INTERFACE.placeBlock(*replacement.coordinates, replacement.full_name)
-        INTERFACE.sendBlocks()
+            replacement.place()
+        EDITOR.flushBuffer()
 
     def set_on_fire(self, amount: int) -> None:
         """"""
@@ -194,8 +194,7 @@ class Blueprint(ABC):
                 properties = {'facing': facing, 'half': half, 'shape': shape}
 
             replacement = replace(block, name=name, properties=BlockProperties(properties))
-
-            INTERFACE.placeBlock(*replacement.coordinates, replacement.full_name)
+            replacement.place()
 
     def get_entrance_with_rotation(self, rotation: int) -> Coordinates:
         """"""
@@ -269,7 +268,7 @@ class Building(Blueprint):
             self._build_structure(structure, plot.start)
 
         self._place_sign()
-        INTERFACE.sendBlocks()
+        EDITOR.flushBuffer()
 
 
 class Tower(Building):
@@ -288,7 +287,7 @@ class Tower(Building):
 
         self._build_structure(self.structures[2], current, palettes=dict_palette)
         self._place_sign()
-        INTERFACE.sendBlocks()
+        EDITOR.flushBuffer()
 
 
 class BuildingWithSlots(Building):
@@ -319,7 +318,7 @@ class Graveyard(BuildingWithSlots):
     def add_tomb(self, villager, year: int, cause: str):
         slot = super().get_free_slot()
         if slot:
-            INTERFACE.placeBlock(*slot.coordinates, 'stone_bricks')
+            # INTERFACE.placeBlock(*slot.coordinates, 'stone_bricks')
 
             sign_angle = slot.coordinates.angle(self.entrance)
             slot.coordinates.shift(y=1).place_sign(f'{villager.name} died of {cause} {villager.birth_year}-{year}',
@@ -327,9 +326,9 @@ class Graveyard(BuildingWithSlots):
                                                    rotation=math_utils.radian_to_orientation(sign_angle,
                                                                                              -math.pi / 2))
             x, y, z = slot.coordinates
-            INTERFACE.placeBlock(x, y - 1, z, 'air')
-            INTERFACE.placeBlock(x, y - 2, z, 'air')
-            INTERFACE.sendBlocks()
+            # INTERFACE.placeBlock(x, y - 1, z, 'air')
+            # INTERFACE.placeBlock(x, y - 2, z, 'air')
+            EDITOR.flushBuffer()
             INTERFACE.runCommand(f'summon zombie {x} {y - 2} {z} {{CustomName:"\\"{villager.name}\\""}}')
 
 
@@ -338,6 +337,7 @@ class WeddingTotem(BuildingWithSlots):
         super().__init__(name, properties, structures, palettes, 'cornflower')
 
     def add_wedding(self):
+        return
         slot = super().get_free_slot()
         if slot:
             INTERFACE.placeBlock(*slot.coordinates, random.choice(LOOKUP.FLOWERS))
@@ -373,12 +373,13 @@ class Farm(Building):
 
                 farm_field.add(block.coordinates)
                 block_name = random.choices(['farmland[moisture=7]', 'cauldron[level=3]'], [90, 10])[0]
-                INTERFACE.placeBlock(*block.coordinates, f'minecraft:{block_name}')
 
-                if 'farmland' in block_name:
-                    INTERFACE.placeBlock(*block.coordinates.shift(y=1), random.choice(LOOKUP.CROPS))
+                # INTERFACE.placeBlock(*block.coordinates, f'minecraft:{block_name}')
 
-        INTERFACE.sendBlocks()
+                # if 'farmland' in block_name:
+                    # INTERFACE.placeBlock(*block.coordinates.shift(y=1), random.choice(LOOKUP.CROPS))
+
+        EDITOR.flushBuffer()
 
 
 class Mine(Building):
@@ -412,7 +413,7 @@ class Mine(Building):
             self._build_crane(plot.start)
 
         self._place_sign()
-        INTERFACE.sendBlocks()
+        EDITOR.flushBuffer()
 
     def _build_crane(self, start: Coordinates) -> None:
         """Build a crane on top of the mine, """
@@ -448,6 +449,7 @@ class TownHall(BuildingWithSlots):
         super().__init__(name, properties, structures, palettes, 'acacia_wall_sign')
 
     def fill_board(self):
+        return
         quest_amount = min(6, len(self.free_slots))
         blocks = random.sample(self.free_slots, quest_amount)
         for slot, quest in zip(blocks, quests.get_quests(quest_amount)):

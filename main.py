@@ -11,7 +11,6 @@ import time
 import click
 from colorama import Fore
 from gdpc import interface as INTERFACE
-from gdpc import editor
 
 from src import env
 from src.blocks.block import Block
@@ -50,7 +49,8 @@ def prepare_environment(debug: bool, tick_speed: int, no_buffering: bool, tp: bo
         print(f'{Fore.YELLOW}***{Fore.WHITE} Set build area around the player {Fore.YELLOW}***{Fore.WHITE}')
 
     EDITOR.doBlockUpdates = False
-    EDITOR.buffering = not no_buffering
+    EDITOR.buffering = True
+    # EDITOR.buffering = not no_buffering
     # INTERFACE.setBuffering(not no_buffering)
     # INTERFACE.placeBlockFlags(doBlockUpdates=True, customFlags='0100011')
     EDITOR.runCommand(f'gamerule doTileDrops {str(drops).lower()}')

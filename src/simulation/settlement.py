@@ -293,9 +293,9 @@ class Settlement(MutableMapping):
         }
 
         slab_pattern = {
-            'INNER': {'oak_slab[waterlogged=false]'.replace('oak', env.BUILDING_MATERIALS['oak'][
+            'INNER': {'minecraft:oak_slab[waterlogged=false]'.replace('oak', env.BUILDING_MATERIALS['oak'][
                 0] if 'oak' in env.BUILDING_MATERIALS else 'oak'): 100},
-            'MIDDLE': {'oak_slab[waterlogged=false]'.replace('oak', env.BUILDING_MATERIALS['oak'][
+            'MIDDLE': {'minecraft:oak_slab[waterlogged=false]'.replace('oak', env.BUILDING_MATERIALS['oak'][
                 0] if 'oak' in env.BUILDING_MATERIALS else 'oak'): 100},
             'OUTER': {leave + '[persistent=true]': 20 for leave in lookup.LEAVES}
         }
@@ -307,6 +307,7 @@ class Settlement(MutableMapping):
 
     def end_simulation(self, end_year: int):
         self.build_roads()
+        return
         self.grow_old()
         self.generate_history(end_year)
         self.add_flowers()
@@ -330,18 +331,20 @@ class Settlement(MutableMapping):
             building.fill_chests(treasure_finders)
 
     def generate_treasure(self):
+        return
         coord = self.plot.random_coord_3d()
         chest_data = chest.get_filled_chest_data([], loot_table.LOOT_TABLES['TREASURE'], fill_amount=20)
         chest_string = f'minecraft:chest'
         EDITOR.placeBlock(*coord, Block(chest_string))
         # interface.placeBlock(*coord, chest_string)
         print(f'Treasure Chest at {coord}')
-        interface.sendBlocks()
-        interface.runCommand(f'data merge block {coord.x} {coord.y} {coord.z} {chest_data}')
+        EDITOR.sendBlocks()
+        EDITOR.runCommand(f'data merge block {coord.x} {coord.y} {coord.z} {chest_data}')
         return coord
 
     def generate_history(self, year):
-        interface.setBuffering(False)
+        return
+        EDITOR.buffering = False
         # History of buildings
         for building in self.chronology[1:]:
             colors = ('§6', '§7', '§9', '§a', '§b', '§c', '§d')
@@ -374,6 +377,7 @@ class Settlement(MutableMapping):
         EDITOR.flushBuffer()
 
     def add_flowers(self):
+        return
         coords = set([coord.as_2D() for coord in self.plot.surface()]) - self.plot.occupied_coordinates
         surface = self.plot.get_blocks(Criteria.WORLD_SURFACE)
         #

@@ -26,7 +26,13 @@ class BlockProperties(Mapping):
         return BlockProperties(props)
 
     def props(self):
-        return {str(key) if isinstance(key, Direction) else key: self.__properties[key] for key in self.__properties.keys()}
+        state = {}
+        for key in self.__properties.keys():
+            if isinstance(self.__properties[key], Direction):
+                state[str(key)] = self.__properties[key].name.lower()
+            else:
+                state[key] = self.__properties[key]
+        return state
 
     # [facing=north,axis=y]
     @staticmethod

@@ -167,7 +167,7 @@ fun: &fun
 potted_flowers: &potted_flowers
   minecraft:flower_pot:
     type: RANDOM
-    lookup: SHORTFLOWERS
+    lookup: SMALL_FLOWER_TYPES
     prefix: potted_
 
 #

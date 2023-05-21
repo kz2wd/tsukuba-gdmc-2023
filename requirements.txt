@@ -25,9 +25,7 @@ filelock==3.7.1 ; python_version >= "3.7" \
 fonttools==4.33.3 ; python_version >= "3.7" and python_version < "4" \
     --hash=sha256:f829c579a8678fa939a1d9e9894d01941db869de44390adb49ce67055a06cc2a \
     --hash=sha256:c0fdcfa8ceebd7c1b2021240bd46ef77aa8e7408cf10434be55df52384865f8e
-gdpc==5.0.2 \
-    --hash=sha256:262d005250dc7eaecc3f5201cc826e667fc0eeafdc736ea7756635f7901b9e40 \
-    --hash=sha256:c189ae43d9cdc8021bf604fff635dc8daebd06d824e695816c9a77884d1b19c6
+gdpc==6.1.1
 identify==2.5.1 ; python_version >= "3.7" \
     --hash=sha256:0dca2ea3e4381c435ef9c33ba100a78a9b40c0bab11189c7cf121f75815efeaa \
     --hash=sha256:3d11b16f3fe19f52039fb7e39c9c884b21cb1b586988114fbe42671f03de3e82

@@ -8,6 +8,7 @@ import time as time
 from functools import lru_cache
 from typing import Generator
 
+import gdpc
 import networkx as nx
 import numpy as np
 from gdpc import interface as INTF
@@ -147,7 +148,7 @@ class Plot:
         while unwanted_blocks:
             block = unwanted_blocks.pop()
             for coord in self.__yield_until_ground(block.coordinates):
-                INTF.placeBlock(*coord, 'minecraft:air')
+                EDITOR.placeBlock(*coord, gdpc.Block('minecraft:air'))
                 amount += 1
 
         EDITOR.flushBuffer()
@@ -168,16 +169,17 @@ class Plot:
         if not self.water_mode:
             blocks = ('stone_bricks', 'diorite', 'cobblestone')
             weights = (75, 15, 10)
-            return
+
             for coord in self.__iterate_over_air(self.start.y):
                 block = random.choices(blocks, weights)
-                INTF.placeBlock(*coord, block)
+                EDITOR.placeBlock(tuple(iter(coord)), gdpc.Block(f"minecraft:{block}"))
         else:
 
             # INSIDE
             for coord in self.surface():
-                INTF.placeBlock(*coord, "oak_planks")
+                EDITOR.placeBlock(tuple(iter(coord)), gdpc.Block("minecraft:oak_planks"))
 
+            return
             # OUTER FRAME
             for coord in self.start.shift(x=-3, z=-1).line(self.size.x + 4, Direction.EAST):
                 if coord in build_area:
@@ -208,7 +210,7 @@ class Plot:
 
         EDITOR.flushBuffer()
 
-    def __iterate_over_air(self, max_y: int) -> Coordinates:
+    def __iterate_over_air(self, max_y: int) -> iter(Coordinates):
         """"""
         for block in self.get_blocks(Criteria.MOTION_BLOCKING_NO_TREES):
             for new_y in range(block.coordinates.y, max_y):
@@ -608,7 +610,7 @@ class RoadPlot(LogicPlot):
 
                 if coordinates in self and coordinates.as_2D() not in self.construction_coordinates:
                     roads.append(self.get_blocks(Criteria.MOTION_BLOCKING_NO_LEAVES).find(coordinates))
-                    INTF.placeBlock(*coordinates, 'air')
+                    EDITOR.placeBlock(tuple(iter(coordinates)), gdpc.Block('minecraft:air'))
 
         self.remove_trees(BlockList(roads))
 
@@ -639,18 +641,18 @@ class RoadPlot(LogicPlot):
 
                 if the_blocks[0] in ('minecraft:shroomlight', 'minecraft:sea_lantern',
                                      'minecraft:glowstone', 'minecraft:redstone_lamp[lit=true]'):
-                    INTF.placeBlock(x, y-1, z, the_blocks)
-                    INTF.placeBlock(x, y, z, 'minecraft:white_stained_glass')
+                    EDITOR.placeBlock((x, y-1, z), gdpc.Block(the_blocks))
+                    EDITOR.placeBlock((x, y, z), gdpc.Block('minecraft:white_stained_glass'))
                 else:
                     if Coordinates(x, 0, z) in self.construction_coordinates:
                         continue
 
                     if 'note_block' in the_blocks[0]:
-                        INTF.placeBlock(x, y+1, z, random.choice(list(slab_pattern['OUTER'].keys())))
+                        EDITOR.placeBlock((x, y+1, z), gdpc.Block(random.choice(list(slab_pattern['OUTER'].keys()))))
 
-                    INTF.placeBlock(x, y, z, the_blocks)
+                    EDITOR.placeBlock((x, y, z), gdpc.Block(the_blocks))
 
-        INTF.sendBlocks()
+        EDITOR.flushBuffer()
 
     def __add_road_block(self, coordinates: Coordinates, placement: str):
 
@@ -747,10 +749,10 @@ class RoadPlot(LogicPlot):
                 block = self.get_blocks(Criteria.MOTION_BLOCKING_NO_TREES).find(
                     road)  # to be sure that we are in the plot
                 if block:
-                    INTF.placeBlock(*(road.with_points(y=self.roads_y[road] + y_offset)),
+                    EDITOR.placeBlock(tuple(iter((road.with_points(y=self.roads_y[road] + y_offset)))), "minecraft:" +
                                     colors[min(self.roads_infos[key][road], len(colors)) - 1] + '_' + materials[i])
 
-        INTF.sendBlocks()
+        EDITOR.flushBuffer()
 
 
 class CityPlot(BuildPlacementPlot, RoadPlot):

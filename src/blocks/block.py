@@ -23,7 +23,6 @@ class Block:
 
     def place(self):
         EDITOR.placeBlock(tuple(self.coordinates.__iter__()), gdpc.Block(self.name, self.properties.props()))
-        EDITOR.flushBuffer()
 
     @staticmethod
     def parse_nbt(block: TAG_Compound, palette: TAG_List) -> Block:

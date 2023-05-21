@@ -50,9 +50,9 @@ class RandomPalette(Palette):
         """Create a palette of blocks chosen randomly using the data from the given [palette]"""
         if 'lookup' in palette:
             lookup = palette['lookup']
-            self.blocks = LOOKUP.__dict__[lookup]
+            self.blocks = list(LOOKUP.__dict__[lookup])
         else:
-            self.blocks = palette['blocks']
+            self.blocks = list(palette['blocks'])
 
         self.prefix = palette.get('prefix', '')
 
